@@ -23,7 +23,7 @@ Download video from BlackBoard ClassIn ( eeo.cn )
 
 4. 点击下载按钮
 
-#License
+# License
 WTFPL
 
 Thanks to: Aria2c System.Text.Json
