@@ -28,7 +28,7 @@ WTFPL
 
 Thanks to: Aria2c System.Text.Json
 
-#Bug
+# Bug
 Bad user experience.
 
 下载时窗口卡住，不恰当的界面显示
