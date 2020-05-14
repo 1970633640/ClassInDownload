@@ -20,6 +20,7 @@ namespace ClassInDownload
     {
         private static readonly HttpClient client = new HttpClient();
         ClassInObject item;
+        ClassInObject2 item2;
         String downloadFolder="D:\\ClassIn";
         String folder;
         int downloadTaskCount;
@@ -37,19 +38,25 @@ namespace ClassInDownload
             public Data data { get; set; }
         }
 
+        public class ClassInObject2
+        {
+            public Data2 data { get; set; }
+        }
 
         public class Data
         {
-            public string lessonId { get; set; }
+            public long lessonId { get; set; }
             public string lessonName { get; set; }
-            public Lessondata lessonData { get; set; }
-            public string lessonStarttime { get; set; }
-            public string lessonEndtime { get; set; }
+            public long lessonStarttime { get; set; }
+            public long lessonEndtime { get; set; }
             public string courseName { get; set; }
             public string schoolName { get; set; }
             public string teacherName { get; set; }
         }
-
+        public class Data2
+        {
+            public Lessondata lessonData { get; set; }
+        }
         public class Lessondata
         {
             public int lessonStatus { get; set; }
@@ -101,25 +108,27 @@ namespace ClassInDownload
             var content = new FormUrlEncodedContent(values);
             var response = await client.PostAsync("https://www.eeo.cn/saasajax/webcast.ajax.php?action=getLessonLiveInfo", content);
             var responseString = await response.Content.ReadAsStringAsync();
-
+            var response2 = await client.PostAsync("https://www.eeo.cn/saasajax/webcast.ajax.php?action=getLessonWebcastData", content);
+            var responseString2 = await response2.Content.ReadAsStringAsync();
             //json
             item = JsonSerializer.Deserialize<ClassInObject>(responseString);
 
             //ui
             System.DateTime dateTime = new System.DateTime(1970, 1, 1, 8, 0, 0, 0);
-            var startTime = dateTime.AddSeconds(double.Parse(item.data.lessonStarttime));
-            var endTime = dateTime.AddSeconds(double.Parse(item.data.lessonEndtime));
+            var startTime = dateTime.AddSeconds(double.Parse(item.data.lessonStarttime.ToString()));
+            var endTime = dateTime.AddSeconds(double.Parse(item.data.lessonEndtime.ToString()));
             label2.Text = "School: " + item.data.schoolName + "    Teacher: " + item.data.teacherName + "    LessonName: " + item.data.lessonName
                 + "\n(GMT+8) Start: " + startTime.ToShortDateString() + " " + startTime.ToLongTimeString()
                 + "    End: " + endTime.ToShortDateString() + " " + endTime.ToLongTimeString();
             folder = item.data.lessonName;
             refreshText2();
-
+            //json
+            item2 = JsonSerializer.Deserialize<ClassInObject2>(responseString2);
             //file data grid
             dataGridView1.Rows.Clear();
-            for (int i = 0; i < item.data.lessonData.fileList.Length; i++)
+            for (int i = 0; i < item2.data.lessonData.fileList.Length; i++)
             {
-                var it = item.data.lessonData.fileList[i];
+                var it = item2.data.lessonData.fileList[i];
                 dataGridView1.Rows.Add((it.Duration>600||(!checkBox1.Checked)),it.StartTime, it.Duration/3600+"hr"+(it.Duration%3600)/60+"min", long.Parse(it.Size)/1024/1024+"MB", it.Playset[0].Url);
             }
         }
@@ -138,7 +147,7 @@ namespace ClassInDownload
                 {
                     for (int i = 0; i < dataGridView1.Rows.Count; i++)
                     {
-                        if (item.data.lessonData.fileList[i].Duration > 600)
+                        if (item2.data.lessonData.fileList[i].Duration > 600)
                             dataGridView1.Rows[i].Cells[0].Value = true;
                         else
                             dataGridView1.Rows[i].Cells[0].Value = false;
@@ -180,7 +189,7 @@ namespace ClassInDownload
             int x2=0;
             int.TryParse(x,out x2);
             progressBar1.Value = x2;
-            if (currentVideoNum >= item.data.lessonData.fileList.Length)
+            if (currentVideoNum >= item2.data.lessonData.fileList.Length)
                 label3.Text = "成功！ Complete!";
         }
 
@@ -205,7 +214,7 @@ namespace ClassInDownload
         }
         private void success()
         {
-            if (currentVideoNum >= item.data.lessonData.fileList.Length)
+            if (currentVideoNum >= item2.data.lessonData.fileList.Length)
                 label3.Text = "成功！ Complete!";
             button1.Enabled = true;
             button2.Enabled = true;
@@ -219,20 +228,20 @@ namespace ClassInDownload
         {
             currentTaskNum += 1;
             currentVideoNum += 1;
-            if (currentVideoNum >= item.data.lessonData.fileList.Length)
+            if (currentVideoNum >= item2.data.lessonData.fileList.Length)
             {
                 success();
                 return;
             }
             while (Convert.ToBoolean(dataGridView1.Rows[currentVideoNum].Cells[0].Value) == false)
                 currentVideoNum += 1;
-            if (currentVideoNum >= item.data.lessonData.fileList.Length)
+            if (currentVideoNum >= item2.data.lessonData.fileList.Length)
             {
                 success();
                 return;
             }
             refreshStatus("0","");
-            DownloadFileByAria2(item.data.lessonData.fileList[currentVideoNum].Playset[0].Url, textBox2.Text, item.data.lessonData.fileList[currentVideoNum].StartTime.Replace(':','-')+".mp4");
+            DownloadFileByAria2(item2.data.lessonData.fileList[currentVideoNum].Playset[0].Url, textBox2.Text, item2.data.lessonData.fileList[currentVideoNum].StartTime.Replace(':','-')+".mp4");
         }
 
         //https://www.cnblogs.com/littlehb/p/5782714.html
@@ -294,6 +303,11 @@ namespace ClassInDownload
             p.BeginOutputReadLine();
             p.BeginErrorReadLine();
             p.WaitForExit();            //等待进程结束
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
         }
     }
 }
