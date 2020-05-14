@@ -1,8 +1,10 @@
 # Download 下载
 https://github.com/1970633640/ClassInDownload/releases
 
+# V2 Update
+课程信息、回看视频api更改，适配了新的api
 
-# (DEPRECATED) ClassInDownload
+#  ClassInDownload
 Download video from BlackBoard ClassIn ( eeo.cn )
 
 1. Paste link like https://eeo.cn/live.php?lessonKey=xxxx
